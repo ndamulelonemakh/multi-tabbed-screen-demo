@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Multi-Tab Screen Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  </head>
+  <body>
+    <header class="bg-gray-900 text-white py-4 w-full px-8">
+      <h1 class="text-2xl font-bold">Multi-Tab Screen Demo</h1>
+    </header>
+
+    <main class="flex mt-8">
+      <aside class="w-1/4 bg-gray-200 p-4">
+        <nav>
+          <ul>
+            <li class="mb-4">
+              <a href="#" class="flex items-center text-gray-700 hover:text-gray-900" data-tab="workspace">
+                <i class="fas fa-ticket-alt mr-2"></i>
+                <span>Worspace 1</span>
+              </a>
+            </li>
+            <li class="mb-4">
+              <a href="#" class="flex items-center text-gray-700 hover:text-gray-900" data-tab="search">
+                <i class="fas fa-search mr-2"></i>
+                <span>Search</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center text-gray-700 hover:text-gray-900" data-tab="other">
+                <i class="fas fa-ellipsis-h mr-2"></i>
+                <span>Other</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+      <section class="w-3/4 ml-8">
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <div class="border-b border-gray-300">
+            <ul class="flex" id="tabList">
+              <li class="mr-1">
+                <a
+                  href="#"
+                  class="inline-block py-2 px-4 text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-blue-500"
+                  data-tab="start"
+                  >Start</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="mt-4" id="tabContent">
+            <div class="hidden" data-tab-content="start">
+              <h2 class="text-xl font-bold mb-2">Welcome to the Multi-Tab screen demo</h2>
+              <p>Click on the menu items to open tabs and explore different sections.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script defer type="text/javascript">
+      document.addEventListener("DOMContentLoaded", function () {
+        const tabList = document.getElementById("tabList");
+        const tabContent = document.getElementById("tabContent");
+        const menuItems = document.querySelectorAll(".flex.items-center");
+        const MAX_TABS = 10;
+
+        tabList.addEventListener("click", function (event) {
+          if (event.target.tagName === "A") {
+            event.preventDefault();
+            const tabId = event.target.getAttribute("data-tab");
+            openTab(tabId);
+          }
+        });
+
+        menuItems.forEach(function (menuItem) {
+          menuItem.addEventListener("click", function (event) {
+            event.preventDefault();
+            const tabId = this.getAttribute("data-tab");
+            openTab(tabId);
+          });
+        });
+
+        function openTab(tabId) {
+          const tabLink = tabList.querySelector(`[data-tab="${tabId}"]`);
+          const tabContent = document.getElementById("tabContent");
+
+          if (!tabLink) {
+            if (tabList.children.length >= MAX_TABS) {
+              alert("Maximum number of tabs reached. Please close some tabs before opening a new one.");
+              return;
+            }
+
+            const newTabLink = document.createElement("li");
+            newTabLink.classList.add("mr-1");
+            newTabLink.innerHTML = `<a href="#" class="inline-block py-2 px-4 text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-blue-500" data-tab="${tabId}">
+                                        ${tabId.charAt(0).toUpperCase() + tabId.slice(1)}
+                                        <span class="ml-2 inline-block bg-red-500 text-white rounded-full px-2 py-1 text-xs font-bold cursor-pointer" data-close-tab="${tabId}">x</span>
+                                      </a>`;
+            tabList.appendChild(newTabLink);
+
+            const newTabContent = document.createElement("div");
+            newTabContent.classList.add("hidden");
+            newTabContent.setAttribute("data-tab-content", tabId);
+            newTabContent.innerHTML = `<h2 class="text-xl font-bold mb-2">${
+              tabId.charAt(0).toUpperCase() + tabId.slice(1)
+            } Section</h2>
+                                         <p>This is the content for the ${tabId} section.</p>`;
+            tabContent.appendChild(newTabContent);
+          }
+
+          const tabLinks = tabList.getElementsByTagName("a");
+          const tabContents = tabContent.getElementsByTagName("div");
+
+          for (let i = 0; i < tabLinks.length; i++) {
+            tabLinks[i].classList.remove("border-blue-500", "text-gray-900");
+            tabLinks[i].classList.add("border-transparent", "text-gray-700");
+          }
+
+          for (let i = 0; i < tabContents.length; i++) {
+            tabContents[i].classList.add("hidden");
+          }
+
+          const selectedTabLink = tabList.querySelector(`[data-tab="${tabId}"]`);
+          selectedTabLink.classList.remove("border-transparent", "text-gray-700");
+          selectedTabLink.classList.add("border-blue-500", "text-gray-900");
+
+          const selectedTabContent = tabContent.querySelector(`[data-tab-content="${tabId}"]`);
+          selectedTabContent.classList.remove("hidden");
+        }
+
+        tabList.addEventListener("click", function (event) {
+          if (event.target.hasAttribute("data-close-tab")) {
+            event.preventDefault();
+            const tabId = event.target.getAttribute("data-close-tab");
+            closeTab(tabId);
+          }
+        });
+
+        function closeTab(tabId) {
+          const tabLink = tabList.querySelector(`[data-tab="${tabId}"]`);
+          const tabContent = tabContent.querySelector(`[data-tab-content="${tabId}"]`);
+
+          if (tabLink && tabContent) {
+            tabLink.parentElement.remove();
+            tabContent.remove();
+
+            if (tabList.children.length > 0) {
+              const firstTabLink = tabList.children[0].querySelector("a");
+              const firstTabId = firstTabLink.getAttribute("data-tab");
+              openTab(firstTabId);
+            }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
